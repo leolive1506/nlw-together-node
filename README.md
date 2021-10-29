@@ -44,6 +44,7 @@ import { v4 as uuid } from "uuid"
 ```
 yarn add typeorm --save
 yarn add reflect-metadata --save
+arn add sqlite3
 ```
 > reflect-metadata -> typeorm trabalha com decorators, os @ e ela permite usa-los
 
@@ -80,6 +81,11 @@ import "reflect-metadata"
 
             createConnection()
         ```
+	
+	* No server
+	```
+	import "./database"
+	```
 
 ### MIGRATIONS E CLI
 * `MIGRATIONS` Controle de versionamento de tables dentro da aplicação
@@ -151,7 +157,7 @@ yarn typeorm migration:revert
 ```
 
 ```
-yarn typeorm migration:create -n User
+yarn typeorm entity:create -n NameEntity
 ```
 
 
