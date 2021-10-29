@@ -1,16 +1,14 @@
+import "reflect-metadata"
 import express from 'express'
+import { router } from "./routes"
+
+import "./database"
 
 const app = express()
 
-app.get("/test", (req, res) => {
-    // req -> entrada, pedido
-    // res -> saida, resposta
-    // ideal usar o return
-    return res.send("Mamárias")
-})
+// habilitar trabalhar com json
+app.use(express.json())
 
-app.post("/test-post", (req, res) => {
-    return res.send("Mamárias post")
-})
+app.use(router)
 
 app.listen(4000, () => console.log("server is running on PORT 4000"))

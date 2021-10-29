@@ -1,109 +1,3 @@
-# Apresentação projeto
-## `NLW VALORIZA`
-
-* Cadastro de usuário
-* Cadastro de tags(elogios possíveis) <br />
-    * Somente para adms
-* Cadastro de elogios
-    * ID user que vai receber elogio <br />
-    * ID do user qeu está enviando elogio <br />
-    * ID tag <br />
-    * Data criação
-
-* Autenticação do user
-    * Gerar token JWT
-    * Validar usuário logado nas rotas
-
-* Listagem de usuários
-* Listagem de tags
-* Listagem de elogios por usuários
-
-# Oq é node
-* Faz req de forma assincrona, sem bloqueio
-* Event Loop -> quem recebe as req
-    * Tem um single thread
-        * Faz processamento das req    
-    * Disponível 4 threads por padrão
-    * Non-blocking IO
-        * Não espera termina a req pra processar as prox
-        * Muito mais vel
-    * Vem com alguns pacotes / modulos por padrão
-
-# Oq é API
-* Não é
-    * algo p instalar
-    *  programa pra config / utlizar pela web
-    * Não é uma dependência
-
-* É com conceito sobre criação de um projeto
-    * Padrões dentro projeto para qeu seja entendido como API
-
-* `Antes` tinha um único projeto que era responsável por executar tudo
-    * Deixava mais lento
-    * Se fosse criar moblie, precisava duplicar tudo
-
-* `Agora com API`
-    * Cliente(html, css, js) e servidor
-    * Cliente faz uma solicitação servidor (req / rotas)
-    * Servidor retorna resposta para o client
-    * **Oq define ser uma API**
-        * Tem um server com recursos dentro da API
-            * Rotas que client vai solicitar pra API
-
-        * Backend com recurso sendo chamado(fazendo req)
-
-# Por que usar TS
-* É uma ferramenta que possibilita dar uma "identidade"
-* Só usa em ambiente de desenvolvimento
-    * Quando colocar em produção é preciso converter pra js
-* Produtividade maior, maior clareza do que passar
-* Força as variaveis pra ser de algum tipo
-    * nomeVariavel: tipoDela
-        * ex: 
-        ```ts
-        function sendEmail(name: string, email: string, tel: number) {}
-        ```
-
-    * Evita erros em produção
-
-    * Pode definir por meio de uma interface tb
-    ```ts
-    interface Usuario {
-        nome: string,
-        email: string,
-        tel: string
-    }
-
-    function sendEmail(user: Usuario ) {}
-    ```
-
-    * `Para usar os params`
-
-    ```ts
-    user.nome
-    ```
-    * `Ou usar destructuring` na hora atribuir função
-
-    ```ts
-    function sendEmail({nome, email, tel}: Usuario ) {}
-    ```
-    * Para usar, como `espera so um parametro` (type Usuario)
-        ```ts
-            sendEmail({
-                nome: "LEO",
-                email: leo@gmail.com,
-                tel: "13421235"
-            })
-        ```
-    * Deixar algum parametro opcional
-    ```ts
-    interface Usuario {
-        nome: string,
-        email: string,
-        tel?: string
-    }
-    ```
-
 # Do projeto em si
 ## Dependencias
 ```
@@ -116,8 +10,12 @@ yarn add typescript -D
 yarn tsc --init
 ```
 * Deixar 
-    ```ts
-     strict: false
+    ```json
+     "strict": false,
+     "experimentalDecorators": true,
+     "emitDecoratorMetadata": true,
+     "strictPropertyInitialization": false, 
+     
     ```
     * Propriedade JS que coloca algumas checagem dentro do código, como vai fazer pode desabilitar
     * Node por padrão não entende o ts
@@ -130,9 +28,189 @@ yarn tsc --init
         yarn add ts-node-dev -D
         ```
 
-## Metodos
-* GET     ->    Buscar informação (ex: listar user, produtos)
-* POST    ->    Inserir(criar) informação na API
-* PUT     ->    Alterar uma informação
-* DELET   ->    Remover dado
-* PATCH   ->    Alterar uma informaçao especifica (somente senha, somente avatar)
+* uuid
+    * Gera uuid pelo framework
+```
+yarn add uuid
+yarn add @types/uuid -D
+```
+```ts
+import { v4 as uuid } from "uuid"
+```
+
+## Banco Dados
+### TYPEORM
+#### Instalção
+```
+yarn add typeorm --save
+yarn add reflect-metadata --save
+```
+> reflect-metadata -> typeorm trabalha com decorators, os @ e ela permite usa-los
+
+```ts
+import "reflect-metadata"
+```
+* Dps escolher um database
+
+* [Escolher uma config](https://typeorm.io/#/using-ormconfig)
+    * No video creado um json
+    ```
+    ormconfig.json
+    ```
+
+    * Ex:
+    ```json
+    {
+        "type": "mysql",
+        "host": "localhost",
+        "port": 3306,
+        "username": "test",
+        "password": "test",
+        "database": "test"
+    }
+    ```
+    * SQLite não precisa passar usuario, senha e porta
+        * Para ele database é um arquivo criado na raiz do projeto
+        ```json
+        database: "src/database/datase.sqlite
+        ```
+        * Na pasta database, criar um index.ts
+        ```ts
+            import { createConnection } from "typeorm"
+
+            createConnection()
+        ```
+
+### MIGRATIONS E CLI
+* `MIGRATIONS` Controle de versionamento de tables dentro da aplicação
+    * "Github" do banco
+
+* Tem um repositorio que funciona como gerenciador da entedidade no banco de dados
+* Tem metodos ja definidos
+    * Ex: findOne()
+        * SELECT que retorna o primeiro item
+    * Ex: save() 
+        * funcionar como INSERTED
+
+* `CLI` Ferramenta pra usar no terminal
+* No ormconfig
+```json
+{
+    "type": "sqlite",
+    "database": "src/database/database.sqlite",
+    "cli": {
+        "migrationsDir": "src/database/migrations"
+    }
+}
+```
+
+* No package.json
+```json
+"scripts": {
+    "typeorm": "ts-node-dev ./node_modules/typeorm/cli.js"
+  },
+```
+
+
+* Executar as migrations
+```json
+{
+    "type": "sqlite",
+    "database": "src/database/database.sqlite",
+    "migrations": ["src/database/migrations/*.ts"],
+    "cli": {
+        "migrationsDir": "src/database/migrations"
+    }
+}
+```
+
+```
+yarn typeorm migration:run
+```
+* Remover migration (remove a ultima)
+```
+yarn typeorm migration:revert
+```
+
+* Definir entidades pra ele criar as migrations
+    * Oq é uma entidade? Pode ser referenciada como uma tabela que tem como base uma tabela
+```json
+{
+    "type": "sqlite",
+    "database": "src/database/database.sqlite",
+    "migrations": ["src/database/migrations/*.ts"],
+    // usar entities
+    "entities": [
+        "src/entities/*.ts"
+    ],
+    "cli": {
+        "migrationsDir": "src/database/migrations",
+        "entitiesDir": "src/entity"
+    }
+}
+```
+
+```
+yarn typeorm migration:create -n User
+```
+
+
+### COMANDOS TYPYORM
+* Criar uma entidade
+```
+yarn typeorm migration:create -n NameMigrate
+```
+    
+## Repositorio
+* Entity (User) <-> ORM <-> BD
+    * Quando receber req, simulando fazer uma inserção de user
+    * Não consegue diretamente acessar o DB, precisa de uma camada responsável por fazer acesso
+    * Os repostórios fazem essa ponte entre entity e db
+
+
+## IDEIA TABLES PROJETO
+* `USER`
+    * (PK) ID (uuid)
+    * name (varchar)
+    * email (varchar)
+    * password (varchar)
+    * admin (boolean)
+    * created_at (Date)
+    * updated_at (Date)
+
+* `TAG`
+    * (PK) ID (uuid)
+    * name (varchar)
+    * created_at (Date)
+    * updateed_at (Date)
+
+* `COMPLIMENTS`
+    * (PK) ID (uuid)
+    * (FK) user_sender (uuid)
+    * (FK) user_receiver (uuid)
+    * message (varchar)
+    * (FK) tag_id (uuid)
+    * updateed_at (Date)
+
+
+## Services 
+* Toda regra da aplicação precisa estar em uma camada isolada
+* Regras da aplicação
+* Cadastro de usuário
+    * Não é permitido cadastrar mais de um usuário com o mesmo e-mail
+    * Não é permitido cadastrar usuário sem e-mail
+
+* Cadastro de TAG
+    * Não é permitido cadastrar mais de uma tag com o mesmo onome
+    * Não é permitido cadastrar tag sem nome
+    * Não é permitido o cadastro por usuários que não seja admin
+    
+* Cadastro de elogios
+    * Não é permitido um usuário cadastrar um elogio para si
+    * Não é permitido cadastrar elogios para usários inválidos
+    * Usuário precisa estar autenticado na aplicação
+
+## Controllers
+* server -> controller -> service 
+* Funciona como req, res 
+* Pega informação do server e passa repassa pro service
