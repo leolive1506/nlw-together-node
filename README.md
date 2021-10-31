@@ -139,7 +139,8 @@ yarn typeorm migration:revert
 ```
 
 * Definir entidades pra ele criar as migrations
-    * Oq é uma entidade? Pode ser referenciada como uma tabela que tem como base uma tabela
+    * Oq é uma entidade? Representa a table no código
+
 ```json
 {
     "type": "sqlite",
@@ -151,20 +152,21 @@ yarn typeorm migration:revert
     ],
     "cli": {
         "migrationsDir": "src/database/migrations",
-        "entitiesDir": "src/entity"
+        "entitiesDir": "src/entities"
     }
 }
 ```
+* criar migration
+```
+yarn typeorm migration:create -n NameMigrate
 
+* `Criar entidade`
 ```
 yarn typeorm entity:create -n NameEntity
 ```
 
 
-### COMANDOS TYPYORM
-* Criar uma entidade
-```
-yarn typeorm migration:create -n NameMigrate
+
 ```
     
 ## Repositorio
@@ -202,6 +204,7 @@ yarn typeorm migration:create -n NameMigrate
 ## Services 
 * Toda regra da aplicação precisa estar em uma camada isolada
 * Regras da aplicação
+
 * Cadastro de usuário
     * Não é permitido cadastrar mais de um usuário com o mesmo e-mail
     * Não é permitido cadastrar usuário sem e-mail
@@ -220,3 +223,54 @@ yarn typeorm migration:create -n NameMigrate
 * server -> controller -> service 
 * Funciona como req, res 
 * Pega informação do server e passa repassa pro service
+
+
+## Middleware
+* Interceptadores dentro de um req
+* Interromper ou add alguma informação dentro do middleware
+* Algo entre a req e res
+
+## Erros 
+### Tratar no código
+* Por padrão express não consegue capturar erros async
+    ```
+    yarn add express-async-errors
+    ```
+    * no server
+    ```ts
+    import "express-async-errors"
+    ```
+* throw new -> lança uma exceção
+    * Repassa a exeção p camada acima (no caso o controller)
+    * Deixa a camada acima como responsável para tratar a exeção
+
+* Duas formas tratar
+    1. Colocar em um try catch
+    2. server -> routes -> controller -> service (throw new Error) **Recomendado**
+        * Colocar a tratativa no server como sendo um middleware
+            * Pega a res que ta vindo das rotas e faz uma tratativa verificando se tem algum erro
+
+        * Colocar dps das rotas
+        ```ts
+        app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+            // next -> fizer tratativa e quise enviar pra prox nível
+            if (err instanceof Error) { // vendo se o erro que ta vindo é do tipo Error
+                return res.status(400).json({
+                    error: err.message
+                })
+            }
+
+            return res.status(500).json({
+                status: "error",
+                message: "Internal Server Error"
+            })
+        })
+        ```
+```
+throw new
+```
+* `No terminal`
+```
+No metadata for "User" was found.
+```
+* Olhar cominhos das entidades no ormconfig

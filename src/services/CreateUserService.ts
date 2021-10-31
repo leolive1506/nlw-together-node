@@ -16,6 +16,7 @@ class CreateUserService {
         // precisa falar que quer usar um repositorio customizado
         const usersRepositories = getCustomRepository(UsersRepositories)
 
+        // enviar sem email
         if (!email) {
             throw new Error("Email incorrect");
         }
@@ -25,6 +26,7 @@ class CreateUserService {
             email
         })
 
+        // se tiver o email no banco
         if (userAlreadyExists) {
             throw new Error("User already exists")
         }
@@ -37,6 +39,7 @@ class CreateUserService {
             admin
         })
 
+        // 2. salvar
         await usersRepositories.save(user)
 
         return user

@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { v4 as uuid } from "uuid"
 // v1 -> id gerado a partir de um tempo
 // v3 e v5 -> hash
@@ -21,7 +21,7 @@ class User {
 
     @CreateDateColumn()
     created_at: Date;
-    @CreateDateColumn()
+    @UpdateDateColumn()
     updated_at: Date
 
     constructor() {
