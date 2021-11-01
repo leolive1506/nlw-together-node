@@ -164,18 +164,75 @@ yarn typeorm migration:create -n NameMigrate
 ```
 yarn typeorm entity:create -n NameEntity
 ```
+```  
 
 
-
-```
-    
 ## Repositorio
 * Entity (User) <-> ORM <-> BD
     * Quando receber req, simulando fazer uma inserção de user
     * Não consegue diretamente acessar o DB, precisa de uma camada responsável por fazer acesso
     * Os repostórios fazem essa ponte entre entity e db
 
+## Definir uma primary key (FK)
+* Precisa ter um campo e saber onde ta vindo
+* Precisa que dado na table de origem exista
+* Existem duas formas com typeorm
+    * Primeira
+        ```ts
+            name: "compliments",
+            columns: [
+                {
+                    name: "id",
+                    type: "uuir",
+                    isPrimary: true
+                },
+                {
+                    name: "user_sender",
+                    type: "uuid"
+                },
+            ],
+            foreignKeys: [
+                {
+                    name: "FKUserSenderCompliments",
+                    referencedTableName: "users",
+                    referencedColumnNames: ["id"],
+                    columnNames: ["user_sender"],
+                    //quando tiver alguma açãodentro table de origem
+                    // ex: usuario mencionado foi removido e oq quer fazer
+                    onDelete: "SET NULL",
+                    onUpdate: "SET NULL"
+                }
+        ```
+    * Segunda - dps fechar ")" createTable
+        ```ts
+         await queryRunner.createForeignKey(
+            "compliments", // table que ta add foreign key
+            new TableForeignKey({
+                name: "FKUserSenderCompliments",
+                referencedTableName: "users",
+                referencedColumnNames: ["id"],
+                columnNames: ["user_sender"],
+                //quando tiver alguma açãodentro table de origem
+                // ex: usuario mencionado foi removido e oq quer fazer
+                onDelete: "SET NULL",
+                onUpdate: "SET NULL"
+            })
 
+        )
+
+        ```
+* Diferença entre os dois
+    * A primeira não precisa passar campo table e se removesse a table, as foreign keys seriam removidas tb
+    * Na 2º no public asyn down, precisaria remover todas foreign keys
+
+* `@ManyToOne(() => Tag)` - Relação muitos para um
+    * Ex: Muitos elogios podem ter uma tag em comum, usar many to one -> muitos pra um
+    ```ts
+    @JoinColumn({ name: "tag_id" })
+    @ManyToOne(() => Tag) // muitos elogios pra uma tag
+    tag: Tag // tag é a entedida referenciando a table
+
+    ```
 ## IDEIA TABLES PROJETO
 * `USER`
     * (PK) ID (uuid)
@@ -230,6 +287,62 @@ yarn typeorm entity:create -n NameEntity
 * Interromper ou add alguma informação dentro do middleware
 * Algo entre a req e res
 
+
+## [JWT](https://jwt.io/)
+* JSON WEB TOKENS
+* Quando faz via token não precisa ficar enviando a todo momento user e password
+* Dividido em tres partes
+    1. Header
+        * typo: jwt
+        * algoritimo gerar token
+    2. Payload
+        * informação passar dentro token
+            * Ex: Armazenar id, email, nome, tempo expiração
+            * Não passar senha
+    3. Verificação assinatura
+        * Concatena header + payload + chave secreta (a gente que passa)
+
+```
+yarn add jsonwebtoken
+yarn add @types/jsonwebtoken
+```
+
+* Para gerar token: validar user existe, dados são corretos
+    * Nesse caso precisa de email e senha
+```ts
+import { sign } from "jsonwebtoken"
+
+const token = sign({ // payload
+            email: user.email
+}, "cd0bc9de3623a46f4c511490d7c8fe4c") //chave secreta
+```
+
+## bcryptjs
+* Deixar a senha criptografada
+```
+yarn add bcryptjs
+yarn add @types/bcryptjs
+```
+
+```ts
+import { hash } from "bcryptjs"
+const passwordHash = await hash(password, 8) // senha, tamanho
+
+ const user = usersRepositories.create({
+            email,
+            password: password
+        })
+```
+
+* Verificar se a senha está correta
+```ts
+import { compare } from "bcryptjs"
+
+const user = await usersRepositories.findOne({
+    email
+})
+await compare(password, user.password) // primeiro password, segundo o hash
+```
 ## Erros 
 ### Tratar no código
 * Por padrão express não consegue capturar erros async
